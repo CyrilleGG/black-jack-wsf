@@ -17,84 +17,143 @@ let cards: [[String: [Any]]] = [
 
 
 
-// === Function that picks a card
-func pickCard () -> Array<Any> {
-    let chooseSuit = Int(arc4random_uniform(4))
-    let chooseCard = Int(arc4random_uniform(13))
-    let suit = cards[chooseSuit]
+//////////////
 
-    let dicKey = Array(suit.keys)
-    let suitName = dicKey[0] as String
-    let dicValue = Array(suit[suitName]!)
-    let cardValue = dicValue[chooseCard]
-    
-    // === Verify if card is already picked
-    let lastPick = player().lastPick
-    for i in 0...lastPick {
-        if player().hand[i][0] as? String == suitName {
-            if player().hand[i][1] as? Int == cardValue as? Int {
-                pickCard()
-            } else if player().hand[i][1] as? String == cardValue as? String {
-                pickCard()
-            }
-        }
-    }
-    // ---
 
-    print("\(cardValue)" + " of " + "\(suitName)")
-    
-//    // === Convert face cards
-//    if cardValue is String {
-//        let toConvert = cardValue as? String
-//        if toConvert == "Ace" {
-//            cardValue = 11
-//        } else {
-//            cardValue = 10
-//        }
-//    }
-//    // ---
-    
-    let pick = [suitName, cardValue]
-    return pick
-}
-// ---
 
-struct player {
-    let name = "Player"
+class player {
+    let name: String
     var hand: Array<Array<Any>> = []
     var lastPick: Int
-    init() {
-        self.lastPick = hand.count - 1
+    init(name: String) {
+        self.name = name
+        self.lastPick = hand.count
     }
     
-    mutating func countPoints () {
-        var totalPoint = 0
+    // === Function that picks a card
+    func pickCard () {
+        var chooseSuit = Int(arc4random_uniform(4))
+        var chooseCard = Int(arc4random_uniform(13))
+        var suit = cards[chooseSuit]
         
-        for i in 0...lastPick
-        {
-            var cardValue = hand[i][1]
-            
-            if cardValue is String
-            {
+        var dicKey = Array(suit.keys)
+        var suitName = dicKey[0] as String
+        var dicValue = Array(suit[suitName]!)
+        var cardValue = dicValue[chooseCard]
+        
+        // === Verify if card is already picked
+        func verifyCards() {
+            for (card) in self.hand.enumerated() {
+                if card.element[0] as? String == suitName {
+                    if card.element[1] as? Int == cardValue as? Int {
+                        chooseSuit = Int(arc4random_uniform(4))
+                        chooseCard = Int(arc4random_uniform(13))
+                        suit = cards[chooseSuit]
+                        dicKey = Array(suit.keys)
+                        suitName = dicKey[0] as String
+                        dicValue = Array(suit[suitName]!)
+                        cardValue = dicValue[chooseCard]
+                        verifyCards()
+                    } else if card.element[1] as? String == cardValue as? String {
+                        chooseSuit = Int(arc4random_uniform(4))
+                        chooseCard = Int(arc4random_uniform(13))
+                        suit = cards[chooseSuit]
+                        dicKey = Array(suit.keys)
+                        suitName = dicKey[0] as String
+                        dicValue = Array(suit[suitName]!)
+                        cardValue = dicValue[chooseCard]
+                        verifyCards()
+                    }
+                }
+            }
+        }
+        // ---
+        verifyCards()
+        print(self.name + " picked " + "\(cardValue)" + " of " + "\(suitName)")
+        
+        let pick = [suitName, cardValue]
+        self.hand.append(pick)
+    }
+    // ---
+    
+    // === Points counter
+    func countPoints () -> Int {
+        var totalPoints = 0
+        
+        for (card) in self.hand.enumerated() {
+            var cardValue = card.element[1]
+
+            // === Face cards convertor
+            if cardValue is String {
                 let toConvert = cardValue as? String
                 if toConvert == "Ace" {
                     cardValue = 11
                 } else {
                     cardValue = 10
+                }
             }
-        }
-//            cardValue as? Int
+            // ---
+
             let cardVal = cardValue as! Int
-            totalPoint = totalPoint + cardVal
+            totalPoints = totalPoints + cardVal
         }
+        return totalPoints
     }
+    // ---
 }
 
-struct dealer {
-    let name = "Dealer"
-    var hand: Array<Array<Any>> = []
-    var lastPick: Int
-    init() {
-        self.lastPick = hand.count - 1
+let playerOne = player(name: "Player 1")
+let dealer = player(name: "Dealer")
+
+
+
+for i in 0...1 {
+    playerOne.pickCard()
+}
+
+for i in 0...1 {
+    dealer.pickCard()
+}
+
+while playerOne.countPoints() < 21 - 5 {
+    print("\(playerOne.name): 'Hit me !'")
+    playerOne.pickCard()
+    playerOne.countPoints()
+}
+
+if playerOne.countPoints() == 21 {
+    print("\(playerOne.name): 'Black Jack !'")
+} else if playerOne.countPoints() > 21 {
+    print("\(playerOne.name) past over 21 points. \(dealer.name) wins the game !")
+} else {
+    print("\(playerOne.name): 'No more picks'")
+    while dealer.countPoints() < 21 - 5 {
+        print("\(dealer.name): 'Hit me !'")
+        dealer.pickCard()
+        dealer.countPoints()
+    }
+    
+    if dealer.countPoints() == 21 {
+        print("\(dealer.name): 'Black Jack !'")
+    } else if dealer.countPoints() > 21 {
+        print("\(dealer.name) past over 21 points. \(playerOne.name) wins the game !")
+    } else {
+        print("\(dealer.name): 'No more picks'")
+        if playerOne.countPoints() > dealer.countPoints() && playerOne.countPoints() < 21 {
+            print("\(playerOne.name) wins the game with \(playerOne.countPoints()) points !")
+        } else if playerOne.countPoints() < dealer.countPoints() && dealer.countPoints() < 21 {
+            print("\(dealer.name) wins the game with \(dealer.countPoints()) points !")
+        } else if playerOne.countPoints() == dealer.countPoints() {
+            print("\(dealer.name): 'Hit me !'")
+            dealer.pickCard()
+            dealer.countPoints()
+            if dealer.countPoints() == 21 {
+                print("\(playerOne.name): 'Black Jack !'")
+            } else if dealer.countPoints() > 21 {
+                print("\(dealer.name) past over 21 points. \(playerOne.name) wins the game !")
+            }else if dealer.countPoints() < 21 {
+                print("\(dealer.name) wins the game with \(dealer.countPoints()) points !")
+            }
+        }
     }
 }
