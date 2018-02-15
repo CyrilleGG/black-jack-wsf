@@ -26,12 +26,11 @@ func pickCard () -> Array<Any> {
     let dicKey = Array(suit.keys)
     let suitName = dicKey[0] as String
     let dicValue = Array(suit[suitName]!)
-    var cardValue = dicValue[chooseCard]
+    let cardValue = dicValue[chooseCard]
     
     // === Verify if card is already picked
     let lastPick = player().lastPick
-    for i in 1...lastPick {
-        print(player().hand[i])
+    for i in 0...lastPick {
         if player().hand[i][0] as? String == suitName {
             if player().hand[i][1] as? Int == cardValue as? Int {
                 pickCard()
@@ -44,16 +43,16 @@ func pickCard () -> Array<Any> {
 
     print("\(cardValue)" + " of " + "\(suitName)")
     
-    // === Convert face cards
-    if cardValue is String {
-        let toConvert = cardValue as? String
-        if toConvert == "Ace" {
-            cardValue = 11
-        } else {
-            cardValue = 10
-        }
-    }
-    // ---
+//    // === Convert face cards
+//    if cardValue is String {
+//        let toConvert = cardValue as? String
+//        if toConvert == "Ace" {
+//            cardValue = 11
+//        } else {
+//            cardValue = 10
+//        }
+//    }
+//    // ---
     
     let pick = [suitName, cardValue]
     return pick
@@ -62,10 +61,32 @@ func pickCard () -> Array<Any> {
 
 struct player {
     let name = "Player"
-    var hand: Array<Array<Any>> = [[1]]
+    var hand: Array<Array<Any>> = []
     var lastPick: Int
     init() {
         self.lastPick = hand.count - 1
+    }
+    
+    mutating func countPoints () {
+        var totalPoint = 0
+        
+        for i in 0...lastPick
+        {
+            var cardValue = hand[i][1]
+            
+            if cardValue is String
+            {
+                let toConvert = cardValue as? String
+                if toConvert == "Ace" {
+                    cardValue = 11
+                } else {
+                    cardValue = 10
+            }
+        }
+//            cardValue as? Int
+            let cardVal = cardValue as! Int
+            totalPoint = totalPoint + cardVal
+        }
     }
 }
 
@@ -76,9 +97,4 @@ struct dealer {
     init() {
         self.lastPick = hand.count - 1
     }
-}
-
-let lastPick = player().lastPick
-for i in 0...lastPick {
-    print(player().hand[i][0])
 }
